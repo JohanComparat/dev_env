@@ -7,6 +7,12 @@ optax                 # emu_pk.train
 numpy
 scipy
 
+# The emu_pk 2.1 training truth: the training set was written on dahu with
+# camb 1.6.6 + classy 3.3.4 (pip-jaxgpu-compiled.txt).  dev's camb 2.0.4
+# re-solves its cosmologies up to 4.4e-4 off in ln P at k ~ 0.1 h/Mpc, too
+# much to validate against.  Keep this pin while that training set is in use.
+camb==1.6.6           # py3-none manylinux wheel (Fortran library inside)
+
 # GPU / OpenGL stress test of the laptop (laptop_stress_test.py)
 psutil
 PyOpenGL

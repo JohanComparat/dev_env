@@ -146,6 +146,15 @@ def optax_adam():
     return f"{optax.__version__}, 100 adam steps on {next(iter(p.devices())).platform}"
 
 
+def camb_pinned():
+    import camb
+    if camb.__version__ != "1.6.6":
+        raise AssertionError(f"camb {camb.__version__}, not 1.6.6 (the emu_pk 2.1 training truth)")
+    p = camb.set_params(H0=67.5, ombh2=0.022, omch2=0.122, As=2e-9, ns=0.965,
+                        WantTransfer=True, kmax=2.0)
+    return f"{camb.__version__}, sigma8={camb.get_results(p).get_sigma8_0():.4f}"
+
+
 def pymangle_import():
     import pymangle
     return pymangle.__file__
@@ -201,7 +210,7 @@ CHECKS_FULL = [pyccl_sigma8, pymaster_field, galsim_draw, torch_tensor]
 # jaxgpu: fails when jax does not see the GPU
 IMPORTS_GPU = ["numpy", "scipy", "optax"]
 OWN_GPU = ["emu_pk"]
-CHECKS_GPU = [jax_gpu, optax_adam]
+CHECKS_GPU = [jax_gpu, optax_adam, camb_pinned, classy_compute]
 
 
 def run(name, fn):

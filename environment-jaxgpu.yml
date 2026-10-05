@@ -1,12 +1,13 @@
 # GPU env (./create.sh jaxgpu): the env that runs jax on the NVIDIA GPU.
 # Separate from dev / dev-full, which keep the CPU jaxlib.
 #
-# conda gives only the interpreter.  jax, its CUDA 13 libraries (nvidia-*
-# wheels) and the rest come from pip (pip-jaxgpu.txt), as JAX recommends; the
-# system needs only the NVIDIA driver, no CUDA toolkit.  Nothing from
-# conda-forge may depend on jax here: conda-forge's optax, for instance, pulls
-# conda-forge jax 0.10.2 + a cuda130 jaxlib + 2 GB of cuda libraries over the
-# pip jax 0.11.2 (2026-10-05).  New packages go in pip-jaxgpu.txt.
+# conda gives the interpreter and the compilers, nothing that imports numpy.
+# jax, its CUDA 13 libraries (nvidia-* wheels) and the rest come from pip
+# (pip-jaxgpu.txt), as JAX recommends; the system needs only the NVIDIA
+# driver, no CUDA toolkit.  Nothing from conda-forge may depend on jax or
+# numpy here: conda-forge's optax, for instance, pulls conda-forge jax 0.10.2 +
+# a cuda130 jaxlib + 2 GB of cuda libraries over the pip jax 0.11.2
+# (2026-10-05).  New packages go in pip-jaxgpu*.txt.
 name: jaxgpu
 channels:
   - conda-forge
@@ -14,3 +15,10 @@ channels:
 dependencies:
   - python=3.14
   - pip
+
+  # --- toolchain for classy (pip-jaxgpu-compiled.txt) ------------------------
+  # its Makefile and setup.py call `gcc` / `g++` by name: create.sh checks
+  # they resolve into the env, never to the system ones.
+  - c-compiler
+  - cxx-compiler
+  - make

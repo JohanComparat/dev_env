@@ -3,7 +3,7 @@
 #
 #   ./create.sh dev                 # core env, solved from environment-dev.yml
 #   ./create.sh dev-full            # dev + environment-extras.yml, one solve
-#   ./create.sh jaxgpu              # GPU jax: environment-jaxgpu.yml + pip-jaxgpu.txt
+#   ./create.sh jaxgpu              # GPU jax: environment-jaxgpu.yml + pip-jaxgpu*.txt
 #   ./create.sh dev --from-lock     # exact rebuild from locks/
 #   ./create.sh dev --force         # remove an existing env of that name first
 #
@@ -28,6 +28,8 @@ for a in "$@"; do
 done
 [[ -n "$ENV" ]] || usage
 LOCK="$HERE/locks/$ENV"
+COMPILED_TXT="$HERE/pip-compiled.txt"
+[[ "$ENV" == jaxgpu ]] && COMPILED_TXT="$HERE/pip-jaxgpu-compiled.txt"
 
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
@@ -73,7 +75,11 @@ fi
 
 # --- 3. activate: the compiler packages set CC/CXX/FC to the env's gcc -------
 set +u; conda activate "$ENV"; set -u
-if [[ "$ENV" != jaxgpu ]]; then     # jaxgpu compiles nothing: no toolchain
+if [[ "$ENV" == jaxgpu ]]; then     # classy's Makefile/setup.py call gcc, g++ by name
+  say "Toolchain: gcc=$(command -v gcc)  g++=$(command -v g++)"
+  [[ "$(command -v gcc)" == "$CONDA_PREFIX/bin/gcc" && "$(command -v g++)" == "$CONDA_PREFIX/bin/g++" ]] \
+    || { echo "gcc/g++ do not come from $CONDA_PREFIX" >&2; exit 1; }
+else
   say "Toolchain: CC=$CC  FC=$FC  rustc=$(command -v rustc)"
   [[ "$(gsl-config --prefix)" == "$CONDA_PREFIX" ]] \
     || { echo "gsl-config does not point into $CONDA_PREFIX" >&2; exit 1; }
@@ -86,10 +92,18 @@ if [[ "$ENV" == jaxgpu ]]; then
   if (( FROM_LOCK )); then
     say "pip packages from lock"
     "${PIP[@]}" install --no-deps -r "$LOCK-pip.txt"
+    COMPILED_REQ="$LOCK-pip-compiled.txt"
   else
     say "jax[cuda13] and the other pip packages"
     "${PIP[@]}" install -r "$HERE/pip-jaxgpu.txt"
+    COMPILED_REQ="$COMPILED_TXT"
   fi
+  # Isolated build (setuptools/cython stay out of the env) against the env's
+  # own numpy, with the env's gcc (checked in step 3).
+  say "Compiled pip packages (conda gcc, isolated build on the env's numpy)"
+  BUILD_PINS="$(mktemp)"; trap 'rm -f "$BUILD_PINS"' EXIT
+  python -c 'import numpy; print(f"numpy=={numpy.__version__}")' > "$BUILD_PINS"
+  "${PIP[@]}" install --no-deps --build-constraint "$BUILD_PINS" -r "$COMPILED_REQ"
 elif (( FROM_LOCK )); then
   say "Compiled pip packages from lock"
   "${PIP[@]}" install --no-build-isolation --no-deps -r "$LOCK-pip-compiled.txt"
@@ -157,7 +171,7 @@ if (( ! FROM_LOCK )); then
   # conda, not mamba: mamba 2 prints a table, not an @EXPLICIT url list.
   "$CONDA_ROOT/bin/conda" list -n "$ENV" --explicit --md5 > "$LOCK.conda.lock"
   grep -q "^@EXPLICIT" "$LOCK.conda.lock" || { echo "bad conda lock" >&2; exit 1; }
-  python "$HERE/lock_pip.py" "$HERE/pip-compiled.txt" "$LOCK"
+  python "$HERE/lock_pip.py" "$COMPILED_TXT" "$LOCK"
 fi
 if [[ "$ENV" != jaxgpu ]]; then     # jaxgpu has no ipykernel
   say "Jupyter kernel '$ENV'"

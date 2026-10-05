@@ -1,0 +1,8 @@
+# Compiled packages of `jaxgpu`.  create.sh builds them with the env's
+# conda-forge gcc/g++ (environment-jaxgpu.yml), in an isolated build whose
+# numpy is pinned to the env's numpy; setuptools / cython / wheel stay out of
+# the env.
+
+# CLASS 3.3.4: half of the emu_pk 2.1 training truth (the heating pair), see
+# camb in pip-jaxgpu.txt.  Same version as dev; sdist only, -O3, no OpenMP.
+classy==3.3.4.0

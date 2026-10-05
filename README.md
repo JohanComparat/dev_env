@@ -7,7 +7,7 @@ project in `~/software` (not `~/software/previous/`).
 |------------|----------------------------------------------------------------------|
 | `dev`      | Python 3.12, CPU jax, all compiled deps, all own packages editable    |
 | `dev-full` | `dev` + pyccl, NaMaster, galsim, yt/pyxsim, pytorch-cpu, notebook extras |
-| `jaxgpu`   | Python 3.14, GPU jax (pip `jax[cuda13]`), optax, emu_pk editable — GPU training |
+| `jaxgpu`   | Python 3.14, GPU jax (pip `jax[cuda13]`), optax, camb 1.6.6 + classy 3.3.4, emu_pk editable — GPU training, emu_pk 2.1 validation |
 
 Conda is a Miniforge install at `~/software/miniforge3` (conda-forge only);
 override with `CONDA_ROOT=/path/to/miniforge3 ./create.sh ...`.
@@ -91,8 +91,9 @@ its own env on this laptop.
 | `pip-extras.txt`         | pure-Python extras for `dev-full` |
 | `pip-extras-nodeps.txt`  | `dev-full` extras whose pins clash with the env, installed `--no-deps` (pyhalomodel) |
 | `own-packages.txt`       | repos in `~/software` installed `pip install -e --no-deps`, in dependency order |
-| `environment-jaxgpu.yml` | conda part of `jaxgpu`: python and pip, nothing else |
-| `pip-jaxgpu.txt`         | pip part of `jaxgpu`: `jax[cuda13]`, optax, numpy, scipy, GPU stress-test deps |
+| `environment-jaxgpu.yml` | conda part of `jaxgpu`: python, pip, gcc/g++/make (for classy), nothing that imports numpy |
+| `pip-jaxgpu.txt`         | pip part of `jaxgpu`: `jax[cuda13]`, optax, numpy, scipy, camb==1.6.6, GPU stress-test deps |
+| `pip-jaxgpu-compiled.txt`| compiled in `jaxgpu`: classy 3.3.4 |
 | `own-packages-jaxgpu.txt`| own packages of `jaxgpu` (emu_pk), editable `--no-deps` |
 | `create.sh`              | builds an env; see the numbered steps inside |
 | `verify.py`              | import + compiled smoke tests (Corrfunc, pyfnntw, classy, …; jax on the GPU for `jaxgpu`) |
@@ -105,13 +106,25 @@ The only env that runs jax on the NVIDIA GPU; `dev` and `dev-full` keep the
 CPU jaxlib. It is built the way it was first made by hand (2026-10-01:
 `conda create -n jaxgpu python=3.14`, then `pip install -U "jax[cuda13]"`):
 
-- conda gives only python and pip (`environment-jaxgpu.yml`); everything else
-  is pip (`pip-jaxgpu.txt`). `jax[cuda13]` brings jaxlib, the CUDA 13 plugin
-  and the CUDA libraries as `nvidia-*` wheels, so the system needs only the
-  NVIDIA driver, no CUDA toolkit.
-- **Never `mamba install` into it.** A conda-forge package that depends on jax
-  installs conda-forge jax and jaxlib over the pip ones: for optax the solver
-  wanted jax 0.10.2 + a cuda130 jaxlib + 58 packages (2 GB), over pip jax 0.11.2.
+- conda gives python, pip and the compilers (`environment-jaxgpu.yml`);
+  everything else is pip (`pip-jaxgpu.txt`). `jax[cuda13]` brings jaxlib, the
+  CUDA 13 plugin and the CUDA libraries as `nvidia-*` wheels, so the system
+  needs only the NVIDIA driver, no CUDA toolkit.
+- **camb is pinned to 1.6.6, with classy 3.3.4**: the emu_pk 2.1 training set
+  was written on dahu with exactly these, and this env is where emu_pk 2.1 is
+  validated against that truth. dev's camb 2.0.4 re-solves the training
+  cosmologies up to 4.4e-4 off in ln P at k ~ 0.1 h/Mpc, too much for
+  validation. Here, 6 re-solved training cosmologies match dahu's stored
+  (float32) rows to |d ln P| <= 6.6e-7, the storage rounding (2026-10-05).
+  dev and dev-full keep camb 2.0.4 for the other repos.
+- classy is compiled in the env (`pip-jaxgpu-compiled.txt`): the conda-forge
+  gcc/g++ 15.3 (`create.sh` checks `gcc`/`g++` resolve into the env), an
+  isolated build so setuptools/cython stay out of the env, and numpy pinned at
+  build time to the env's numpy. CLASS's own flags: `-O3`, no OpenMP.
+- **Never `mamba install` anything that imports numpy or jax into it** (the
+  compilers are fine). A conda-forge package that depends on jax installs
+  conda-forge jax and jaxlib over the pip ones: for optax the solver wanted
+  jax 0.10.2 + a cuda130 jaxlib + 58 packages (2 GB), over pip jax 0.11.2.
 - To add a package: put it in `pip-jaxgpu.txt` and `./create.sh jaxgpu --force`.
   To add it to the live env without a rebuild, pin what is there so nothing
   else moves, then rewrite the locks:
@@ -120,14 +133,15 @@ CPU jaxlib. It is built the way it was first made by hand (2026-10-01:
   PY=~/software/miniforge3/envs/jaxgpu/bin/python
   $PY -m pip install -c <($PY -m pip freeze --exclude-editable) <package>
   ~/software/miniforge3/bin/conda list -n jaxgpu --explicit --md5 > locks/jaxgpu.conda.lock
-  PYTHONNOUSERSITE=1 $PY lock_pip.py pip-compiled.txt locks/jaxgpu
+  PYTHONNOUSERSITE=1 $PY lock_pip.py pip-jaxgpu-compiled.txt locks/jaxgpu
   ```
 
 - Own packages come from `own-packages-jaxgpu.txt` (only what needs nothing
   beyond `pip-jaxgpu.txt`), editable and built with isolation: the env has no
   setuptools.
 - `python verify.py --env jaxgpu` fails unless jax sees a GPU device; it runs
-  a matmul and 100 optax Adam steps on it.
+  a matmul and 100 optax Adam steps on it, checks camb is 1.6.6 and runs one
+  CAMB and one CLASS solve.
 
 ## Why compiled packages are done this way
 
