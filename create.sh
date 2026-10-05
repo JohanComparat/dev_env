@@ -3,6 +3,7 @@
 #
 #   ./create.sh dev                 # core env, solved from environment-dev.yml
 #   ./create.sh dev-full            # dev + environment-extras.yml, one solve
+#   ./create.sh jaxgpu              # GPU jax: environment-jaxgpu.yml + pip-jaxgpu.txt
 #   ./create.sh dev --from-lock     # exact rebuild from locks/
 #   ./create.sh dev --force         # remove an existing env of that name first
 #
@@ -14,12 +15,12 @@ SOFTWARE="$(dirname "$HERE")"
 CONDA_ROOT="${CONDA_ROOT:-$SOFTWARE/miniforge3}"
 MAMBA="$CONDA_ROOT/bin/mamba"
 
-usage() { sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+usage() { sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
 ENV=""; FROM_LOCK=0; FORCE=0
 for a in "$@"; do
   case "$a" in
-    dev|dev-full) ENV="$a" ;;
+    dev|dev-full|jaxgpu) ENV="$a" ;;
     --from-lock)  FROM_LOCK=1 ;;
     --force)      FORCE=1 ;;
     *)            usage ;;
@@ -57,7 +58,9 @@ if (( FROM_LOCK )); then
   "$CONDA_ROOT/bin/conda" create -y -n "$ENV" --file "$LOCK.conda.lock"
 else
   SPEC="$HERE/environment-dev.yml"
-  if [[ "$ENV" == dev-full ]]; then
+  if [[ "$ENV" == jaxgpu ]]; then
+    SPEC="$HERE/environment-jaxgpu.yml"
+  elif [[ "$ENV" == dev-full ]]; then
     # One solve over dev + extras: append the extras' dependency lines.
     SPEC="$(mktemp --suffix=.yml)"; trap 'rm -f "$SPEC"' EXIT
     { cat "$HERE/environment-dev.yml"; echo
@@ -70,13 +73,24 @@ fi
 
 # --- 3. activate: the compiler packages set CC/CXX/FC to the env's gcc -------
 set +u; conda activate "$ENV"; set -u
-say "Toolchain: CC=$CC  FC=$FC  rustc=$(command -v rustc)"
-[[ "$(gsl-config --prefix)" == "$CONDA_PREFIX" ]] \
-  || { echo "gsl-config does not point into $CONDA_PREFIX" >&2; exit 1; }
+if [[ "$ENV" != jaxgpu ]]; then     # jaxgpu compiles nothing: no toolchain
+  say "Toolchain: CC=$CC  FC=$FC  rustc=$(command -v rustc)"
+  [[ "$(gsl-config --prefix)" == "$CONDA_PREFIX" ]] \
+    || { echo "gsl-config does not point into $CONDA_PREFIX" >&2; exit 1; }
+fi
 PIP=(python -m pip --disable-pip-version-check)
 
 # --- 4. pip part ---------------------------------------------------------------
-if (( FROM_LOCK )); then
+if [[ "$ENV" == jaxgpu ]]; then
+  # jax, its CUDA 13 wheels and the rest: pip only (see environment-jaxgpu.yml).
+  if (( FROM_LOCK )); then
+    say "pip packages from lock"
+    "${PIP[@]}" install --no-deps -r "$LOCK-pip.txt"
+  else
+    say "jax[cuda13] and the other pip packages"
+    "${PIP[@]}" install -r "$HERE/pip-jaxgpu.txt"
+  fi
+elif (( FROM_LOCK )); then
   say "Compiled pip packages from lock"
   "${PIP[@]}" install --no-build-isolation --no-deps -r "$LOCK-pip-compiled.txt"
   say "Pure pip packages from lock"
@@ -110,18 +124,24 @@ print("  ok")
 EOF
 
 # --- 5. own packages, editable -----------------------------------------------
+# jaxgpu gets its own short list, built with isolation: it has no setuptools,
+# and those packages are pure Python.
+OWN_LIST="$HERE/own-packages.txt"; NO_ISOLATION=(--no-build-isolation)
+if [[ "$ENV" == jaxgpu ]]; then
+  OWN_LIST="$HERE/own-packages-jaxgpu.txt"; NO_ISOLATION=()
+fi
 say "Own packages (editable, --no-deps)"
 FAILED=()
 while read -r repo; do
   if [[ ! -d "$SOFTWARE/$repo" ]]; then
     echo "  $repo: not cloned in $SOFTWARE, skipped" >&2
-  elif "${PIP[@]}" install --no-build-isolation --no-deps -q -e "$SOFTWARE/$repo" \
+  elif "${PIP[@]}" install "${NO_ISOLATION[@]}" --no-deps -q -e "$SOFTWARE/$repo" \
          > "/tmp/dev_env-$repo.log" 2>&1; then
     echo "  $repo"
   else
     echo "  $repo: FAILED (log: /tmp/dev_env-$repo.log)" >&2; FAILED+=("$repo")
   fi
-done < <(grep -vE '^\s*(#|$)' "$HERE/own-packages.txt")
+done < <(grep -vE '^\s*(#|$)' "$OWN_LIST")
 
 # --- 6. checks -----------------------------------------------------------------
 say "pip check"
@@ -139,8 +159,10 @@ if (( ! FROM_LOCK )); then
   grep -q "^@EXPLICIT" "$LOCK.conda.lock" || { echo "bad conda lock" >&2; exit 1; }
   python "$HERE/lock_pip.py" "$HERE/pip-compiled.txt" "$LOCK"
 fi
-say "Jupyter kernel '$ENV'"
-python -m ipykernel install --user --name "$ENV" --display-name "Python ($ENV)"
+if [[ "$ENV" != jaxgpu ]]; then     # jaxgpu has no ipykernel
+  say "Jupyter kernel '$ENV'"
+  python -m ipykernel install --user --name "$ENV" --display-name "Python ($ENV)"
+fi
 
 say "Done: conda activate $ENV"
 if (( ${#FAILED[@]} )); then

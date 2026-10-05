@@ -1,0 +1,13 @@
+# pip half of `jaxgpu` (./create.sh jaxgpu), all from PyPI.
+# jax[cuda13] brings jaxlib, the jax-cuda13 plugin and the nvidia-* CUDA 13
+# wheels (cuBLAS, cuDNN, ...): only the NVIDIA driver comes from the system
+# (CUDA 13 needs >= 580; this laptop has 595).
+jax[cuda13]
+optax                 # emu_pk.train
+numpy
+scipy
+
+# GPU / OpenGL stress test of the laptop (laptop_stress_test.py)
+psutil
+PyOpenGL
+glfw

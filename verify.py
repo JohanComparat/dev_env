@@ -1,6 +1,6 @@
 """Smoke-test the compiled parts of a dev env.
 
-    python verify.py [--env dev|dev-full]
+    python verify.py [--env dev|dev-full|jaxgpu]
 
 Each check imports a package and runs a tiny computation through its compiled
 code.  Prints a pass/fail table; exits non-zero if anything failed.
@@ -113,6 +113,39 @@ def jax_jit():
     return f"{jax.__version__} on {jax.devices()[0].platform}"
 
 
+def jax_gpu():
+    import jax
+    import jax.numpy as jnp
+    gpus = [d for d in jax.devices() if d.platform == "gpu"]
+    if not gpus:
+        raise AssertionError(f"no GPU device; jax sees {jax.devices()}")
+    x = jax.device_put(jnp.ones((2048, 2048)), gpus[0])
+    assert float((x @ x).block_until_ready()[0, 0]) == 2048.0
+    return f"{jax.__version__} on {gpus[0].device_kind}"
+
+
+def optax_adam():
+    import jax
+    import jax.numpy as jnp
+    import optax
+    opt = optax.adam(0.1)
+    p = jnp.array([3.0, -2.0])
+    state = opt.init(p)
+
+    def loss(p):
+        return jnp.sum(p**2)
+
+    @jax.jit
+    def step(p, state):
+        updates, state = opt.update(jax.grad(loss)(p), state, p)
+        return optax.apply_updates(p, updates), state
+
+    for _ in range(100):
+        p, state = step(p, state)
+    assert float(loss(p)) < 1e-2
+    return f"{optax.__version__}, 100 adam steps on {next(iter(p.devices())).platform}"
+
+
 def pymangle_import():
     import pymangle
     return pymangle.__file__
@@ -165,6 +198,10 @@ CHECKS_DEV = [
     classy_compute, camb_run, treecorr_nn, healpy_map, jax_jit, pymangle_import,
 ]
 CHECKS_FULL = [pyccl_sigma8, pymaster_field, galsim_draw, torch_tensor]
+# jaxgpu: fails when jax does not see the GPU
+IMPORTS_GPU = ["numpy", "scipy", "optax"]
+OWN_GPU = ["emu_pk"]
+CHECKS_GPU = [jax_gpu, optax_adam]
 
 
 def run(name, fn):
@@ -183,15 +220,20 @@ def run(name, fn):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--env", choices=["dev", "dev-full"], default="dev")
-    full = ap.parse_args().env == "dev-full"
+    ap.add_argument("--env", choices=["dev", "dev-full", "jaxgpu"], default="dev")
+    env = ap.parse_args().env
     print(f"python {sys.version.split()[0]} at {sys.prefix}")
 
-    imports = IMPORTS_DEV + (IMPORTS_FULL if full else [])
-    checks = CHECKS_DEV + (CHECKS_FULL if full else [])
+    if env == "jaxgpu":
+        imports, own, checks = IMPORTS_GPU, OWN_GPU, CHECKS_GPU
+    else:
+        full = env == "dev-full"
+        imports = IMPORTS_DEV + (IMPORTS_FULL if full else [])
+        own = OWN
+        checks = CHECKS_DEV + (CHECKS_FULL if full else [])
     results = [run(m, lambda m=m: getattr(importlib.import_module(m), "__version__", "ok"))
                for m in imports]
-    for m in OWN:
+    for m in own:
         if importlib.util.find_spec(m) is None:
             print(f"  SKIP  {m:<22}        not installed (repo not cloned?)")
         else:

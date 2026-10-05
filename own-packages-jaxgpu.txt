@@ -1,0 +1,4 @@
+# ~/software repos installed editable (pip install -e --no-deps) in `jaxgpu`.
+# Only what trains or runs on the GPU and needs nothing beyond
+# pip-jaxgpu.txt: emu_pk needs numpy + jax, and optax for emu_pk.train.
+emu_pk
