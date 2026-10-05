@@ -1,0 +1,11 @@
+# Pure-Python packages not on conda-forge.  Installed with a normal pip
+# install (build isolation on, so their own build backends are fetched).
+colossus
+cobaya
+cosmopower-jax
+AletheiaCosmo
+jaxace
+
+# git-only
+CEmulator @ git+https://github.com/czymh/csstemu
+aemulusnu_hmf @ git+https://github.com/DelonShen/aemulusnu_hmf

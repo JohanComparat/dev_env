@@ -1,0 +1,18 @@
+# Pure-Python extras for `dev-full`, not on conda-forge.
+halomod
+
+jax-cosmo
+ppxf
+pyneb
+eazy                  # eazy-py
+plotdigitizer
+
+# git-only
+discoeb @ git+https://github.com/ohahn/DISCO-EB.git      # GPL
+cloelib @ git+https://github.com/cloe-org/cloelib         # PyPI name is a placeholder
+
+# mopc (sum_stat/scripts/gen_sz_mopc_reference.py) -- not on PyPI and no
+# source URL recorded in any project; add its git URL here when known.
+
+# dark_emulator (desi_erosita_agn/src/hod_fitting/validation_HOD_darkemu.py)
+# is left out: 1.1.2 imports scipy.misc.derivative, removed in scipy 1.12.

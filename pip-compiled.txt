@@ -1,0 +1,25 @@
+# Compiled packages not on conda-forge.  create.sh installs these with
+#   pip install --no-build-isolation
+# inside the activated env.  None of them ships a linux wheel, so pip compiles
+# each with the conda-forge gcc / rustc against the env's numpy, gsl and
+# openmp -- never the system ones.  Their build backends (setuptools, cython,
+# maturin) are in environment-dev.yml for that reason.
+
+# Pair counting.  conda-forge has a binary, but built for generic x86-64:
+# no AVX/AVX2/AVX512 kernels.  Built here, its Makefile uses the env's $CC
+# with -march=native and links the env's gsl (gsl-config is on PATH).
+Corrfunc==2.5.3
+
+# CLASS.  No wheels; 3.4 sdist is broken (ggah_mod caps it).
+classy>=3.3.4,<3.4
+
+# Delta-Sigma lensing estimator (sum_stat [lensing]).  1.1.0: sum_stat uses
+# dsigma.helpers.dsigma_table, removed in 1.2.  Cython, -march=native
+# is fine here since the env is only ever used on this machine.
+dsigma==1.1.0
+
+# Rust kd-tree (sum_stat [knn]).  sdist only; built by maturin + conda rust.
+pyfnntw
+
+# Mangle polygon masks (C).
+pymangle

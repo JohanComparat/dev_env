@@ -1,0 +1,33 @@
+aemulusnu_hmf @ git+https://github.com/DelonShen/aemulusnu_hmf@8de0385483144e9da4a7ca5587ce9d49a574a9ff
+AletheiaCosmo==1.1.0
+astro-sedpy==0.4.1
+capfit==2.7.1
+CEmulator @ git+https://github.com/czymh/csstemu@145a9115412ccf28124d22e786d37ecea191fbf6
+cloelib @ git+https://github.com/cloe-org/cloelib@fc4119bd6a441b20183da4a2e74c59e39a674bbb
+cobaya==3.6.2
+colossus==1.4.0
+cosmolib==0.6
+cosmopower_jax==0.5.8
+deprecation==2.1.0
+dill==0.4.1
+discoeb @ git+https://github.com/ohahn/DISCO-EB.git@3aa88d203f00411edcf9985b1abd6d387acd7494
+eazy==0.8.7
+fetch-artifacts==0.1.0
+halomod==2.2.3
+hankel==1.2.2
+hmf==3.7.2
+interpax==0.3.15
+jax-cosmo==0.1.0
+jaxace==0.7.0
+opencv-python==4.14.0.94
+PeakUtils==1.3.5
+plotdigitizer==0.3.0
+portalocker==4.4.0
+ppxf==9.5.0
+Py-BOBYQA==1.5.0
+pyhalomodel==1.0.2
+pyinstrument==5.1.3
+pyneb==1.1.32
+tomlkit==0.12.5
+ty==0.0.84
+wurlitzer==3.1.1

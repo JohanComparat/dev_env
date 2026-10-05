@@ -1,0 +1,17 @@
+# ~/software repos installed editable (pip install -e --no-deps), in
+# dependency order.  Their third-party deps come from the env files above.
+# ggah_mod_dev is left out: it has the same distribution name as ggah_mod;
+# swap it in by hand with `pip install -e ~/software/ggah_mod_dev --no-deps`.
+emu_pk
+emu_hmf
+ggah_mod
+hod_mod
+sys_mapping
+xray_rr
+sum_stat
+ggah_cal
+rema
+ggah_sens_study
+sys_mapping_benchmark
+sys_mapping_euclid
+ggah_mod_benchmark

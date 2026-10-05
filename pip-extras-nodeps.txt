@@ -1,0 +1,6 @@
+# Installed with --no-deps into dev-full: their declared pins conflict with
+# the rest of the env, but the code works with it (checked by verify.py).
+
+# Pins numpy<2.0 (cloelib needs >2.0).  Pure Python; used by
+# desi_erosita_agn/src/hod_fitting and ggah_mod_dev.
+pyhalomodel

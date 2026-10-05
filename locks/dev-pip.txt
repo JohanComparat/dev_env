@@ -1,0 +1,13 @@
+aemulusnu_hmf @ git+https://github.com/DelonShen/aemulusnu_hmf@8de0385483144e9da4a7ca5587ce9d49a574a9ff
+AletheiaCosmo==1.1.0
+CEmulator @ git+https://github.com/czymh/csstemu@145a9115412ccf28124d22e786d37ecea191fbf6
+cobaya==3.6.2
+colossus==1.4.0
+cosmopower_jax==0.5.8
+dill==0.4.1
+fetch-artifacts==0.1.0
+jaxace==0.7.0
+portalocker==4.4.0
+Py-BOBYQA==1.5.0
+tomlkit==0.12.5
+wurlitzer==3.1.1

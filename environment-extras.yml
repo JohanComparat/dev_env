@@ -1,0 +1,29 @@
+# Added on top of environment-dev.yml to make `dev-full`
+# (./create.sh dev-full).  Heavy, notebook / paper-only stacks used by
+# tuto_stage, desi_erosita_agn, tptd_cosmo, cxg and ggah_mod_benchmark.
+name: dev-full
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  # pins of pip-extras.txt, solved here so pip never replaces a conda pkg
+  - scipy<1.18         # eazy
+
+  # C libraries on gsl / fftw / cfitsio -- conda-forge binaries, same libs as dev
+  - pyccl
+  - namaster           # imported as pymaster
+  - galsim
+
+  # X-ray / simulation stack
+  - yt
+  - pyxsim
+  - hdf5plugin
+
+  # deep learning, CPU only (tptd_cosmo)
+  - pytorch=*=cpu*
+
+  # spectra / photometry / catalogues
+  - dust_extinction
+  - astroquery
+  - specutils
+  - photutils

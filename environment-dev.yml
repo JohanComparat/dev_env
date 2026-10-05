@@ -1,0 +1,122 @@
+# Core development environment for every project in ~/software
+# (except ~/software/previous/).  Built by ./create.sh dev, never by hand.
+#
+# Rule: anything that is compiled comes from conda-forge, either as a binary
+# below or built by pip *inside* this env with the conda-forge compilers below
+# and --no-build-isolation (see pip-compiled.txt).  This keeps every header and
+# shared library -- gsl, fftw, openmp -- coming from $CONDA_PREFIX, never from
+# the system, which is what broke the earlier Corrfunc install on this laptop.
+name: dev
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  # 3.12: >= every package floor (xray_rr needs 3.12), < the 3.14 cap of
+  # emu_pk / emu_hmf / ggah_mod, and the widest coverage of binary builds.
+  - python=3.12
+  - pip
+  - setuptools>=77
+  - wheel
+  - cython
+  - maturin            # pyfnntw is Rust, sdist-only on PyPI
+
+  # --- toolchain: used by pip for classy, dsigma, pyfnntw, pymangle ----------
+  - c-compiler
+  - cxx-compiler
+  - fortran-compiler
+  - rust
+  - make
+  - cmake
+  - pkg-config
+
+  # --- system libraries, from conda-forge only -------------------------------
+  - gsl
+  - fftw
+  - cfitsio
+  - hdf5
+
+  # --- clustering ------------------------------------------------------------
+  # Corrfunc is NOT here: the conda-forge binary has no AVX/AVX2/AVX512
+  # kernels.  It is built from source in pip-compiled.txt instead.
+  - treecorr
+
+  # --- numerics / jax --------------------------------------------------------
+  - numpy<2.5          # quadax<0.3 (via jaxace) caps it
+  - scipy
+  - jax
+  - jaxlib=*=*cpu*     # GPU work stays in the separate `jaxgpu` env
+  - optax
+  - blackjax>=1.2,<1.6 # sys_mapping's cap
+  - numpyro
+  - equinox
+  - numba
+
+  # --- deps of pip-pure.txt, solved here so pip never replaces a conda pkg ----
+  - flax>=0.10,<0.11   # jaxace
+  - diffrax>=0.7,<0.8  # jaxace
+  - quadax>=0.2.9,<0.3 # jaxace
+  - tensorstore        # flax -> orbax-checkpoint
+  - skops              # AletheiaCosmo
+  - rapidfuzz          # cobaya
+  - pybind11           # declared runtime dep of the treecorr build
+
+  # --- astro / cosmo ---------------------------------------------------------
+  - astropy
+  - astropy-healpix
+  - healpy
+  - h5py
+  - camb
+  - getdist
+  - pixell
+  - emcee
+  - corner
+  - ultranest
+  - dustmaps
+  - extinction
+  - glass
+  - scikit-learn=1.7   # AletheiaCosmo pins ~=1.7.2
+  - pandas
+  - pyarrow
+  - matplotlib
+  - seaborn
+  - pyyaml
+  - joblib
+  - tqdm
+  - psutil
+  - pooch
+  - platformdirs
+  - sympy
+  - requests
+  - pybtex
+  - soxs               # ggah_mod [tables], ggah_cal erosita_ecf
+
+  # --- tests, lint, packaging ------------------------------------------------
+  - pytest
+  - pytest-cov
+  - pytest-xdist
+  - pytest-benchmark
+  - ruff
+  - black
+  - pre-commit
+  - python-build
+  - twine
+
+  # --- docs ------------------------------------------------------------------
+  - sphinx
+  - furo
+  - sphinx_rtd_theme
+  - pydata-sphinx-theme
+  - myst-parser
+  - myst-nb
+  - sphinx-copybutton
+  - sphinxcontrib-bibtex
+  - sphinx-autoapi
+  - numpydoc
+
+  # --- notebooks -------------------------------------------------------------
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - ipympl
+  - nbclient
+  - nbformat

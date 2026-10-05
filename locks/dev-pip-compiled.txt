@@ -1,0 +1,5 @@
+classy==3.3.4.0
+Corrfunc==2.5.3
+dsigma==1.1.0
+pyfnntw==0.4.1
+pymangle==0.9.4
