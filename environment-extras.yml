@@ -10,7 +10,7 @@ dependencies:
   - scipy<1.18         # eazy
 
   # C libraries on gsl / fftw / cfitsio -- conda-forge binaries, same libs as dev
-  - pyccl
+  # pyccl is pip (pip-extras.txt): conda's depends on conda's camb.
   - namaster           # imported as pymaster
   - galsim
 

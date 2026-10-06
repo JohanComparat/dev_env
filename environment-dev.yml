@@ -24,6 +24,12 @@ dependencies:
   - c-compiler
   - cxx-compiler
   - fortran-compiler
+  # The activation packages that set CC and FC (create.sh and every pip build
+  # read them).  The old solves got them through c-compiler/fortran-compiler;
+  # the 2026-10-06 solve satisfied those with bare gcc/gfortran instead, and
+  # create.sh stopped on an unset CC.
+  - gcc_linux-64
+  - gfortran_linux-64
   - rust
   - make
   - cmake
@@ -65,7 +71,7 @@ dependencies:
   - astropy-healpix
   - healpy
   - h5py
-  - camb
+  # camb is pip, camb==1.6.6 (pip-pure.txt): conda-forge stops at 1.6.5.
   - getdist
   - pixell
   - emcee

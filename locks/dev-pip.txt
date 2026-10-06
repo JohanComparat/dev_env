@@ -1,5 +1,6 @@
 aemulusnu_hmf @ git+https://github.com/DelonShen/aemulusnu_hmf@8de0385483144e9da4a7ca5587ce9d49a574a9ff
 AletheiaCosmo==1.1.0
+camb==1.6.6
 CEmulator @ git+https://github.com/czymh/csstemu@145a9115412ccf28124d22e786d37ecea191fbf6
 cobaya==3.6.2
 colossus==1.4.0

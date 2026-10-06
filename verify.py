@@ -84,12 +84,6 @@ def classy_compute():
     return f"sigma8={s8:.4f}"
 
 
-def camb_run():
-    import camb
-    p = camb.set_params(H0=67.5, ombh2=0.022, omch2=0.122, As=2e-9, ns=0.965)
-    return f"age={camb.get_background(p).get_derived_params()['age']:.2f} Gyr"
-
-
 def treecorr_nn():
     import treecorr
     x, y = RNG.uniform(0, 10, (2, 2000))
@@ -149,7 +143,7 @@ def optax_adam():
 def camb_pinned():
     import camb
     if camb.__version__ != "1.6.6":
-        raise AssertionError(f"camb {camb.__version__}, not 1.6.6 (the emu_pk 2.1 training truth)")
+        raise AssertionError(f"camb {camb.__version__}, not 1.6.6 (the emu_pk 2.1 training truth, and the paper's CAMB)")
     p = camb.set_params(H0=67.5, ombh2=0.022, omch2=0.122, As=2e-9, ns=0.965,
                         WantTransfer=True, kmax=2.0)
     return f"{camb.__version__}, sigma8={camb.get_results(p).get_sigma8_0():.4f}"
@@ -204,7 +198,7 @@ IMPORTS_FULL = [
 ]
 CHECKS_DEV = [
     corrfunc_theory, corrfunc_mocks, pyfnntw_query, dsigma_import,
-    classy_compute, camb_run, treecorr_nn, healpy_map, jax_jit, pymangle_import,
+    classy_compute, camb_pinned, treecorr_nn, healpy_map, jax_jit, pymangle_import,
 ]
 CHECKS_FULL = [pyccl_sigma8, pymaster_field, galsim_draw, torch_tensor]
 # jaxgpu: fails when jax does not see the GPU

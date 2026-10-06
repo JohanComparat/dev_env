@@ -2,6 +2,9 @@
 halomod
 
 jax-cosmo
+pyccl==3.3.6          # the conda-forge build pulls conda's camb, which would sit
+                      # under the pinned camb 1.6.6 wheel (pip-pure.txt); this
+                      # manylinux wheel is the same CCL version
 ppxf
 pyneb
 eazy                  # eazy-py

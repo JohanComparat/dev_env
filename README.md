@@ -116,7 +116,10 @@ CPU jaxlib. It is built the way it was first made by hand (2026-10-01:
   cosmologies up to 4.4e-4 off in ln P at k ~ 0.1 h/Mpc, too much for
   validation. Here, 6 re-solved training cosmologies match dahu's stored
   (float32) rows to |d ln P| <= 6.6e-7, the storage rounding (2026-10-05).
-  dev and dev-full keep camb 2.0.4 for the other repos.
+  Since 2026-10-06 dev and dev-full pin the same camb 1.6.6 (pip, as
+  conda-forge stops at 1.6.5), so the technical paper's CAMB numbers and
+  emu_pk's truth are one CAMB; their pyccl is pip too, because the
+  conda-forge build depends on conda's camb.
 - classy is compiled in the env (`pip-jaxgpu-compiled.txt`): the conda-forge
   gcc/g++ 15.3 (`create.sh` checks `gcc`/`g++` resolve into the env), an
   isolated build so setuptools/cython stay out of the env, and numpy pinned at

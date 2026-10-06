@@ -9,3 +9,11 @@ jaxace
 # git-only
 CEmulator @ git+https://github.com/czymh/csstemu
 aemulusnu_hmf @ git+https://github.com/DelonShen/aemulusnu_hmf
+
+# camb 1.6.6 in every env (2026-10-06, Johan): the emu_pk 2.1 training truth and
+# the CAMB of every number in the ggah_mod technical paper.  camb 2.0.4 moves
+# ln P by up to 4.4e-4 near k = 0.1 h/Mpc and the paper's CLASS-vs-CAMB scan by
+# up to 17 per cent.  conda-forge has no 1.6.6, so it is the pip wheel (Fortran
+# library inside), and no conda package may depend on camb (see pyccl in
+# pip-extras.txt).
+camb==1.6.6
