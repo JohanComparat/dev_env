@@ -10,8 +10,9 @@ sys_mapping
 xray_rr
 sum_stat
 ggah_cal
-rema
+rema-jax
 ggah_sens_study
 sys_mapping_benchmark
 sys_mapping_euclid
 ggah_mod_benchmark
+make-sample-ls11

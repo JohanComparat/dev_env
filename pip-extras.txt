@@ -19,3 +19,17 @@ cloelib @ git+https://github.com/cloe-org/cloelib         # PyPI name is a place
 
 # dark_emulator (desi_erosita_agn/src/hod_fitting/validation_HOD_darkemu.py)
 # is left out: 1.1.2 imports scipy.misc.derivative, removed in scipy 1.12.
+
+# SED fitting / K-corrections (make-sample-ls11 stellar-mass benchmark)
+kcorrect==5.1.9       # Blanton & Roweis v5 (NMF templates)
+lephare==1.0.0        # LePHARE python (C++ core, manylinux wheel); data via lephare.data_retrieval
+dsps==0.4.8           # differentiable SPS (jax); needs an SSP data file
+# CIGALE: not on PyPI, and its data are in git-lfs (a plain pip git clone gets pointer files and
+# the database build fails). Clone once with git-lfs (https://git-lfs.com, a static binary is fine):
+#   git -c filter.lfs.smudge="git-lfs smudge -- %f" -c filter.lfs.process="git-lfs filter-process" \
+#       -c filter.lfs.required=true clone --depth 1 --branch v2025.1 \
+#       https://gitlab.lam.fr/cigale/cigale.git ~/software/external/cigale
+# numpy >= 2.4 has no np.trapz: patch the clone once (same signature):
+#   grep -rl "np\.trapz(" --include=*.py ~/software/external/cigale | xargs sed -i "s/np\.trapz(/np.trapezoid(/g"
+# The install builds the SSP database (slow).
+pcigale @ file://${HOME}/software/external/cigale
