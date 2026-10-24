@@ -37,9 +37,14 @@ dependencies:
 
   # --- system libraries, from conda-forge only -------------------------------
   - gsl
-  - fftw
+  # fftw and hdf5 stay serial: openmpi below must not pull their mpi builds.
+  - fftw=*=nompi*
   - cfitsio
-  - hdf5
+  - hdf5=*=nompi*
+
+  # --- MPI: GADGET-4 (cog-prop-wp1-feasibilty), built in ~/software/nbody_codes
+  - openmpi
+  - mpi4py
 
   # --- clustering ------------------------------------------------------------
   # Corrfunc is NOT here: the conda-forge binary has no AVX/AVX2/AVX512
