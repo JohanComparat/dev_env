@@ -33,3 +33,9 @@ dsps==0.4.8           # differentiable SPS (jax); needs an SSP data file
 #   grep -rl "np\.trapz(" --include=*.py ~/software/external/cigale | xargs sed -i "s/np\.trapz(/np.trapezoid(/g"
 # The install builds the SSP database (slow).
 pcigale @ file://${HOME}/software/external/cigale
+
+# Abacus python driver (cog-prop-wp1-feasibilty, item C5): reading its time
+# slices (abacusnbody) and the run scripts' small helpers.
+abacusutils
+contexttimer
+table-logger @ git+https://github.com/AleksTk/table-logger.git   # the PyPI 0.3.6 uses np.float (gone in numpy 2)

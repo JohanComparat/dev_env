@@ -27,3 +27,24 @@ dependencies:
   - astroquery
   - specutils
   - photutils
+
+  # GPU N-body codes built in ~/software/nbody_codes (cog-prop-wp1-feasibilty,
+  # item C5): PKDGRAV3 (cmake, boost thread) and Abacus (autoconf, flex/bison,
+  # tbb, tcmalloc, numa; meson for its zeldovich-PLT ICs).  CUDA 13 toolkit:
+  # nvcc 13.4 accepts dev's gcc 15 as host compiler (host_config.h allows < 17),
+  # and the 595 driver runs 13.4 (as jaxgpu does).  PKDGRAV3's single-precision
+  # MPI FFTW is a private build in nbody_codes: dev's fftw stays nompi.
+  - cuda-version=13
+  - cuda-nvcc
+  - cuda-cudart-dev
+  - cuda-profiler-api  # cuda_profiler_api.h, included by Abacus (singlestep/GPUControl.cu)
+  - libboost-devel
+  - tbb-devel
+  - gperftools
+  - libnuma
+  - flex
+  - bison
+  - meson
+  - ninja
+  - numexpr            # Abacus python driver
+  - python-blosc       # abacusutils needs blosc: from conda, or pip replaces conda's
